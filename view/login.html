@@ -5,12 +5,49 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <link rel="stylesheet" href="../controller/css/foundation.css">
+    <link rel="stylesheet" href="../controller/css/app.css">
     <title>Login</title>
   </head>
   <body>
-    <h1>Login!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
+    <form>
+      <div class="grid-container">
+        <div class="grid-x">
+          <div class="cell small-6 small-offset-3">
+            <div class="grid-y">
+              <div class="cell small-6">
+                <h4>Vui lòng đăng nhập (^-^).</h5>
+              </div>
+
+              <div class="cell small-6">
+                <label>Tài khoản<input type="text" aria-describedby="usernameHelpText"></label>
+                <p class="help-text" id="usernameHelpText">Email hoặc số điện thoại.</p>
+              </div>
+              <div class="cell small-6">
+                <label>Mật khẩu <input type="password" aria-describedby="passwordHelpText"></label>
+                <p class="help-text" id="passwordHelpText">Chỉ chứa kí tự (a-Z và 0-9).</p>
+              </div>
+              
+              <div class="cell small-6">
+                <fieldset class="fieldset">
+                  <legend>Lựa chọn</legend>
+                  <input id="ckboxInfoUser" type="checkbox"><label for="ckboxInfoUser">Lưu thông tin đăng nhập.</label><br>
+                  <input id="ckboxNotificationUser" type="checkbox"><label for="ckboxNotificationUser">Thông báo khi có bản cập nhập mới.</label>
+                </fieldset>
+              </div>
+
+              <div class="cell small-6">
+                <div class="button-group">
+                  <a class="button">Đăng nhập</a>
+                  <a class="button">Đăng ký</a>
+                  <a class="button">Quên mật khẩu</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    
   </body>
 </html>

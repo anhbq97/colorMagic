@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' filesystem ">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self' filesystem "> -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'none'"> -->
     <link rel="stylesheet" href="../controller/css/foundation.css">
     <link rel="stylesheet" href="../controller/css/app.css">
     <title>Login</title>
@@ -37,10 +37,10 @@
               </div>
 
               <div class="cell small-6">
-                <div class="button-group">
-                  <a class="button">Đăng nhập</a>
-                  <a class="button">Đăng ký</a>
-                  <a class="button">Quên mật khẩu</a>
+                <div class="button-group btn-group-login">
+                  <a class="button" data-button="login">Đăng nhập</a>
+                  <a class="button" data-button="register" data-toggle="registerModal">Đăng ký</a>
+                  <a class="button" data-button="reset" data-toggle="resetModal">Quên mật khẩu</a>
                 </div>
               </div>
             </div>
@@ -49,5 +49,101 @@
       </div>
     </form>
     
+  <div class="reveal" id="registerModal" data-reveal data-close-on-click="true" data-animation-in="fade-in" data-animation-out="fade-out">
+    <h1>Đăng ký</h1>
+    <form>
+      <div class="grid-container">
+        <div class="grid-x">
+          <div class="cell small-6 small-offset-3">
+            <div class="grid-y">
+              <div class="cell small-6">
+                <label>Tài khoản<input type="text" aria-describedby="usernameHelpText"></label>
+                <p class="help-text" id="usernameHelpText">Email hoặc số điện thoại.</p>
+              </div>
+              <div class="cell small-6">
+                <label>Mật khẩu <input type="password" aria-describedby="passwordHelpText"></label>
+                <p class="help-text" id="passwordHelpText">Chỉ chứa kí tự (a-Z và 0-9).</p>
+              </div>
+              
+              <div class="cell small-6">
+                <label>Email<input type="text" aria-describedby="usernameHelpText"></label>
+                <p class="help-text" id="usernameHelpText">Email hoặc số điện thoại, để tìm lại mật khẩu.</p>
+              </div>
+
+              <div class="cell small-6">
+                <div class="button-group btn-group-register">
+                  <a class="button" data-button="register" data-toggle="registerModal">Đăng ký</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <button class="close-button" data-close aria-label="Close reveal" type="button">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="reveal" id="resetModal" data-reveal data-close-on-click="true" data-animation-in="fade-in" data-animation-out="fade-out">
+    <h1>Quên mật khẩu</h1>
+    <form>
+      <div class="grid-container">
+        <div class="grid-x">
+          <div class="cell small-6 small-offset-3">
+            <div class="grid-y">
+              <div class="cell small-6">
+                <label>Email<input type="text" aria-describedby="usernameHelpText"></label>
+                <p class="help-text" id="usernameHelpText">Email khi đăng ký.</p>
+              </div>
+
+              <div class="cell small-6">
+                <div class="button-group btn-group-register">
+                  <a class="button" data-button="reset" data-toggle="resetModal">Reset</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <button class="close-button" data-close aria-label="Close reveal" type="button">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
   </body>
+  <script src="../controller/js/jquery.js"></script>
+  <script src="../controller/js/vendor/jquery.js"></script>
+  <script src="../controller/js/vendor/what-input.js"></script>
+  <script src="../controller/js/vendor/foundation.js"></script>
+  <script src="../controller/js/app.js"></script>
+  <script>
+    const {ipcRenderer} = require('electron');
+    
+    $(document).on('click', '.btn-group-login a', function () {
+      const $thisButton = $(this);
+
+      if ($thisButton.data('button') == 'login') {
+        buttons.login();
+      } else if ($thisButton.data('button') == 'register') {
+        buttons.register();
+      } else {
+        buttons.resetPassword();
+      }
+      console.log($thisButton);
+    });
+
+    const buttons = {
+      login: function () {
+        ipcRenderer.send('initMain');
+      },
+      register: function () {
+        console.log('Đăng ký');
+        
+      },
+      resetPassword: function () {
+
+      }
+    }
+  </script>
 </html>

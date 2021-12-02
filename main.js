@@ -26,6 +26,29 @@ function initLoginWindow () {
     loginWindow.webContents.openDevTools()
 }
 
+function initMainWindow () {
+    mainWindow = new BrowserWindow({
+        width: 1200,
+        height: 800,
+        resizable: true,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            enableRemoteModule: true,
+            devTools: !app.isPackaged,
+        }
+    });
+    mainWindow.loadFile('view/main.html');
+    mainWindow.on('closed', function () {
+        mainWindow = null;
+    });
+    mainWindow.once('ready-to-show', () => {
+        // autoUpdater.checkForUpdatesAndNotify();
+    });
+    mainWindow.focus();
+    mainWindow.webContents.openDevTools()
+}
+
 app.on('ready', () => {
     initLoginWindow();
 });
@@ -69,4 +92,9 @@ ipcMain.on('getPath_app', (event) => {
 ipcMain.on('getPath_root', (event) => {
 let myInstalledDir = path.join(app.getAppPath(),"..",".."); // root installation path
     event.sender.send('getPath_root', { path: myInstalledDir });
+});
+
+ipcMain.on('initMain', () => {
+    initMainWindow();
+    loginWindow.hide();
 });

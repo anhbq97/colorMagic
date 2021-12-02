@@ -2,15 +2,172 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <title>Hello World!</title>
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+    <link rel="stylesheet" href="../controller/css/foundation.css">
+    <link rel="stylesheet" href="../controller/css/app.css">
+    <title>Hi User</title>
   </head>
   <body>
-    <h1>Hello World!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
+    <div class="grid-container-fluid">
+      <div class="grid-x">
+        <div class="cell medium-2">
+          <ul class="vertical tabs" data-tabs id="app-tabs">
+            <li class="tabs-title is-active" data-name="home"><a href="#panel1v" aria-selected="true">Trang chủ</a></li>
+            <li class="tabs-title" data-name="tool-sps"><a href="#panel2v">Tool SPS</a></li>
+            <li class="tabs-title" data-name="tool-money"><a href="#panel3v">Quản lý chi tiêu</a></li>
+          </ul>
+        </div>
+        <div class="cell medium-10">
+          <div id="app-contents"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tiny reveal" id="insertContentMoneyModal" data-reveal data-close-on-click="true" data-animation-in="fade-in" data-animation-out="fade-out">
+      <form>
+          <div class="grid-container">
+            <div class="grid-y">
+                <div class="cell small-12">
+                  <label>Ghi chú<textarea placeholder="None" id="note-money"></textarea>
+                </div>
+
+                <div class="cell small-12">
+                  <div class="button-group btn-group-note-money">
+                    <a class="button" data-button="save">Lưu</a>
+                    <a class="button" data-button="delete">Xoá</a>
+                  </div>
+                </div>
+            </div>
+          </div>
+      </form>
+      <button class="close-button" data-close aria-label="Close reveal" type="button">
+          <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
   </body>
+  <script src="../controller/js/jquery.js"></script>
+  <script src="../controller/js/vendor/jquery.js"></script>
+  <script src="../controller/js/vendor/what-input.js"></script>
+  <script src="../controller/js/vendor/foundation.js"></script>
+  <script src="../controller/js/app.js"></script>
+  <script>
+    const {ipcRenderer} = require('electron');
+
+    $(document).ready(function() {
+      tabs.liHome();
+    });
+
+    $(document).on('click', '#app-tabs li', function () {
+      const $thisButton = $(this);
+
+      if ($thisButton.data('name') == 'home') {
+        tabs.liHome();
+      } else if ($thisButton.data('name') == 'tool-sps') {
+        tabs.liHome();
+      } else if ($thisButton.data('name') == 'tool-money') {
+        tabs.liToolLife();
+      }
+
+
+    });
+
+    const tabs = {
+      liHome: async function () {
+        await fetch.html('./includes/home.html');
+      },
+      liToolLife: async function () {
+        await fetch.html('./includes/money.html');
+        await fetch.js('buildDate');
+      },
+      liToolStoreKeys: function () {
+        console.log('tk');
+      }
+    }
+
+    const fetch = {
+      html: async function (htmlFile) {
+        let response = await $.get(htmlFile)
+        $('#app-contents').html(response);
+      },
+      js: async function (functionName) {
+        if (functionName == 'buildDate') {
+          await money.buildHtml();
+          await money.openNote();
+          await money.saveNote();
+        }
+      }
+    }
+
+    const money = {
+      buildHtml: async function () {
+        table = '<thead>';
+        table += '<tr>';
+        table += '<th width="50">Ngày</th>';
+
+        for (var day = 1;day < 31;day ++) {
+            table += `<th width="150">${day}</th>`;
+        }
+
+        table += '</tr>';
+        table += '</thead>';
+        table += '<tbody>';
+        table += '<tr>';
+        table += '<td>Sáng</td>';
+
+        for (var day = 0;day < 30;day ++) {
+            table += `<td width="150" data-toggle="insertContentMoneyModal"></td>`;
+        }
+
+        table += '</tr>';
+        table += '<tr>';
+        table += '<td>Trưa</td>';
+
+        for (var day = 0;day < 30;day ++) {
+            table += `<td width="150" data-toggle="insertContentMoneyModal"></td>`;
+        }
+
+        table += '</tr>';
+        table += '<td>Chiều</td>';
+
+        for (var day = 0;day < 30;day ++) {
+            table += `<td width="150" data-toggle="insertContentMoneyModal"></td>`;
+        }
+
+        table += '</tr>';
+
+        table += '<td>Tối</td>';
+
+        for (var day = 0;day < 30;day ++) {
+            table += `<td width="150" data-toggle="insertContentMoneyModal"></td>`;
+        }
+
+        table += '</tr>';
+        table += '</tbody>';
+        $('#table').html(table);
+      },
+      openNote: async function () {
+        $(document).on('click', '#table tbody tr td', function () {
+          window.g_note = $(this);
+          $('#note-money').val($(this).text());
+        });
+      },
+      saveNote: async function () {
+        $(document).on('click', '.btn-group-note-money a', function () {
+          let $thisButton = $(this);
+          let note = $('#note-money').val();
+
+          if ($thisButton.data('button') == 'save') {
+            console.log(window.g_note);
+            window.g_note.text(note);
+            $('#note-money').val('');
+          } else {
+            $('#note-money').val('');
+          }
+        });
+        
+      }
+      
+    }
+  </script>
 </html>

@@ -36,24 +36,25 @@
             // redraw each rect in the rects[] array
             for (const rect of rects) {
                 // ctx.fillStyle = rect.fill;
-                doing.move(rect.image, rect.x, rect.y, rect.w, rect.h);
+                doing.move(rect.image, rect.x, rect.y, rect.w, rect.h, rect.isSelect);
                 // pos[rect] = ctx.save();
             }
         },
         clear: async function() {
             ctx.clearRect(0, 0, WIDTH, HEIGHT);
         },
-        move: async function(img, x, y, w, h) {
-            console.log(w, h);
+        move: async function(img, x, y, w, h, isSelect) {
             ctx.drawImage(img, x, y, w, h);
-            ctx.beginPath();
-            ctx.fillStyle = '#00000005';
-            ctx.rect(x, y, w, h);
-            ctx.closePath();
-            ctx.fill();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "black";
-            ctx.stroke();
+
+            if (isSelect) {
+                ctx.beginPath();
+                ctx.fillStyle = '#00000002';
+                ctx.fillRect(x, y, w, h);
+                ctx.closePath();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#99d2ee";
+                ctx.strokeRect(x, y, w, h);
+            }
         },
         mouseDown: async function(e) {
             // tell the browser we're handling this mouse event
@@ -66,10 +67,16 @@
 
             // test each rect to see if mouse is inside
             dragok = false;
+            
             for (const rect of rects) {
+                rect.isSelect = false;
+                doing.mouseUnselected(rect);
+
                 if (mx > rect.x && mx < rect.x + rect.w && my > rect.y && my < rect.y + rect.h) {
                     dragok = true;
                     rect.isDragging = true;
+                    doing.mouseSelected(rect);
+                    rect.isSelect = true;
                 }
             }
             
@@ -83,7 +90,7 @@
                 // tell the browser we're handling this mouse event
                 e.preventDefault();
                 e.stopPropagation();
-
+                
                 // get the current mouse position
                 var mx = parseInt(e.clientX - offsetX);
                 var my = parseInt(e.clientY - offsetY);
@@ -102,7 +109,7 @@
                         rect.y += dy;
                     }
                 }
-
+                
                 // redraw the scene with the new rect positions
                 doing.init();
 
@@ -119,9 +126,19 @@
 
             // clear all the dragging flags
             dragok = false;
-            for (var i = 0; i < rects.length; i++) {
-                rects[i].isDragging = false;
+            for (const rect of rects) {
+                rect.isDragging = false;
             }
+        },
+        mouseSelected: function(rect) {
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#99d2ee";
+            ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+        },
+        mouseUnselected: function (rect) {
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#ffffff";
+            ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
         }
     }
 
@@ -142,16 +159,29 @@
                 w: img.naturalWidth,
                 h: img.naturalHeight,
                 image: img,
+                isSelect: false,
                 // fill: "#444444",
                 isDragging: false
             });
 
             rects.push({
-                x: 50,
+                x: 200,
                 y: 5,
                 w: img.naturalWidth,
                 h: img.naturalHeight,
                 image: img,
+                isSelect: false,
+                // fill: "#ff550d",
+                isDragging: false
+            }); 
+
+            rects.push({
+                x: 300,
+                y: 5,
+                w: img.naturalWidth,
+                h: img.naturalHeight,
+                image: img,
+                isSelect: false,
                 // fill: "#ff550d",
                 isDragging: false
             }); 

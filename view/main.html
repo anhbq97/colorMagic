@@ -55,7 +55,7 @@
     const {ipcRenderer} = require('electron');
 
     $(document).ready(function() {
-      tabs.liHome();
+      tabs.liToolSps();
     });
 
     $(document).on('click', '#app-tabs li', function () {
@@ -64,7 +64,7 @@
       if ($thisButton.data('name') == 'home') {
         tabs.liHome();
       } else if ($thisButton.data('name') == 'tool-sps') {
-        tabs.liHome();
+        tabs.liToolSps();
       } else if ($thisButton.data('name') == 'tool-money') {
         tabs.liToolLife();
       }
@@ -82,6 +82,9 @@
       },
       liToolStoreKeys: function () {
         console.log('tk');
+      },
+      liToolSps: async function () {
+        await fetch.html('./includes/sps.html');
       }
     }
 

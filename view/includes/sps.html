@@ -1,14 +1,28 @@
 <style>
-    #canvas{
-        border: 1px solid black;
-    }
+    .layer{padding: 3px 3px 3px 0px;-webkit-user-select: none;-webkit-touch-callout: none;-moz-user-select: none;-ms-user-select: none;user-select: none;position: absolute;z-index: 222;border: 1px solid black;
+  background-color: #000000cc;
+  text-align: center;
+  border: 1px solid #d3d3d3;
+width: 100%;
+display: flex;}
+    .layer:hover{cursor: pointer;}
+    .layer img{width: 50%;height: 35px;}
+    .layer div:nth-of-type(1){padding: 10px 10px 3px 10px;}
+    .layer div:nth-of-type(2){background-color: white;border: 1px solid black;color: white;width: 40px;padding: 3px 3px 3px 3px;border-radius: 3px;}
+    .layer div small{color: white;margin-left: 10px;margin-top: 10px;}
+    #app-layers{background-color: #4442424a;position: relative;height: 300px;}
 </style>
 <div class="grid-x">
-    <canvas id="canvas"></canvas>
+    <div class="cell medium-9">
+        <canvas id="canvas" style="width: 100%;"></canvas>
+    </div>
+    <div class="cell medium-3">
+        <div id="app-layers"></div>
+    </div>
 </div>
 <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
 
     var BB = canvas.getBoundingClientRect();
     var offsetX = BB.left;
@@ -17,44 +31,42 @@
     canvas.height = 500;
     var WIDTH = canvas.width;
     var HEIGHT = canvas.height;
-
     var dragok = false;
+    var gDragLayer = false;
     var startX;
     var startY;
     var rects = [];
-    // var pos   = [];
+    var imageLayers = {};
 
-    const doing = {
+    var doing = {
         dimention: async function() {
-            WIDTH = 2200;
-            HEIGHT = 800;
+            WIDTH = 2700;
+            HEIGHT = 2000;
         },
         init: async function() {
+            console.log(rects);
             doing.clear();
-            // doing.move(0, 0, WIDTH, HEIGHT);
+            doing.sortLayer();
 
-            // redraw each rect in the rects[] array
+            //background canvas
+            ctx.fillStyle = '#00000008';
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            // redraw each rect in the rects[]
             for (const rect of rects) {
-                // ctx.fillStyle = rect.fill;
-                doing.move(rect.image, rect.x, rect.y, rect.w, rect.h, rect.isSelect);
-                // pos[rect] = ctx.save();
+                ctx.drawImage(rect.image,rect.x, rect.y, rect.w, rect.h);
+
+                if (rect.isSelect) {
+                    ctx.beginPath();
+                    ctx.fillStyle = '#00000002';
+                    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+                    ctx.closePath();
+                    doing.mouseSelected(rect);
+                }
             }
         },
         clear: async function() {
             ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        },
-        move: async function(img, x, y, w, h, isSelect) {
-            ctx.drawImage(img, x, y, w, h);
-
-            if (isSelect) {
-                ctx.beginPath();
-                ctx.fillStyle = '#00000002';
-                ctx.fillRect(x, y, w, h);
-                ctx.closePath();
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "#99d2ee";
-                ctx.strokeRect(x, y, w, h);
-            }
         },
         mouseDown: async function(e) {
             // tell the browser we're handling this mouse event
@@ -64,7 +76,7 @@
             // get the current mouse position
             var mx = parseInt(e.clientX - offsetX);
             var my = parseInt(e.clientY - offsetY);
-
+            
             // test each rect to see if mouse is inside
             dragok = false;
             
@@ -75,8 +87,9 @@
                 if (mx > rect.x && mx < rect.x + rect.w && my > rect.y && my < rect.y + rect.h) {
                     dragok = true;
                     rect.isDragging = true;
-                    doing.mouseSelected(rect);
                     rect.isSelect = true;
+                    //if event change style css
+                    doing.mouseSelected(rect);
                 }
             }
             
@@ -139,63 +152,185 @@
             ctx.lineWidth = 2;
             ctx.strokeStyle = "#ffffff";
             ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+        },
+        sortLayer: async function() {
+            temp = {};
+            for (var i = 0;i < rects.length;i++) {
+                for (var j = i+1; j < rects.length;j++) {
+                    if (rects[i].zIndex > rects[j].zIndex) {
+                        temp = rects[i];
+                        rects[i] = rects[j];
+                        rects[j] = temp;
+                    }
+                }
+            }
+
+            // doing.init();
+        }
+    }
+
+    var common = {
+        loadImage: async function(url) {
+            return new Promise((resolve, reject) => {
+                let img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = url;
+            });
+        }
+    }
+
+    var layer = {
+        init: async function() {
+            var app_layer = $('#app-layers');
+            let top = 0;
+
+            for (var i = rects.length-1;i >= 0;i--) {
+                let layerElement = {
+                    class: "layer",
+                    isDragging: "false",
+                    css: {
+                        "top": top,
+                        "left": 0
+                    }
+                };
+
+                cellLeft = document.createElement('div');
+                cellLeft.className = 'left';
+                cellLeft.insertAdjacentHTML('beforeend', '<i class="fi-eye"></i>');
+
+                cellCenter = document.createElement('div');
+                cellCenter.className = 'center';
+                cellCenter.append(rects[i].image);
+
+                cellRight = document.createElement('div');
+                cellRight.className = 'right';
+
+                smallCenter = document.createElement('small');
+                smallCenter.append(' Layer ' + i);
+                cellRight.append(smallCenter);
+
+                let $div = $("<div>", layerElement);
+                $div.append(cellLeft);
+                $div.append(cellCenter);
+                $div.append(cellRight);
+
+                app_layer.append($div);
+                top += 50;
+            }
+            imageLayers = $('.layer');
+        },
+        reload: async function() {
+
+            $('app-layers').html()
+        },
+        destroy: async function() {
+            $('app-layers').html('');
+        },
+        mouseDown: async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // get the current mouse position
+            var mx = parseInt(e.clientX - offsetX);
+            var my = parseInt(e.clientY - offsetY);
+            e.target.style.zIndex = 999;
+            e.target.setAttribute('isDragging', 'true');
+            gDragLayer = true;
+            
+            startX = mx;
+            startY = my;
+        },
+        mouseUp: async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // clear all the dragging flags
+            gDragLayer = false;
+
+            e.target.style.zIndex = 222;
+            for (imageLayer of imageLayers) {
+                imageLayer.setAttribute('isDragging', 'false');
+            }
+        },
+        mouseMove: async function(e) {
+            if (gDragLayer) {
+                e.preventDefault();
+                e.stopPropagation();
+                // get the current mouse position
+                var mx = parseInt(e.clientX - offsetX);
+                var my = parseInt(e.clientY - offsetY);
+
+                // calculate the distance the mouse has moved
+                // since the last mousemove
+                var dx = mx - startX;
+                var dy = my - startY;
+
+                if (mx > 874 && my < 974 && e.target.getAttribute('isDragging') == 'true') {
+                    e.target.style.top = ( parseInt(e.target.style.top.trim('px')) + dy)+'px';
+                } else {
+                    gDragLayer = false;
+                }
+               
+                startX = mx;
+                startY = my;
+
+            }
         }
     }
 
     $(document).ready(async function() {
-        // doing.dimention();
+        // Canvas Event
+        const urls = ['./Pomeranian 3.png', './9.png', './2.png', './12.png'];
+        let index = 10;
+        let zLayer = [1, 2, 3, 4];
+        let a = 0;
+        for await(const url of urls) {
+            let thisUrl = await common.loadImage(url);
+            rects.push({
+                name: url,
+                x: index,
+                y: 5,
+                w: thisUrl.naturalWidth,
+                h: thisUrl.naturalHeight,
+                offW: thisUrl.offsetWidth,
+                offH: thisUrl.offsetHeight,
+                bottomRight: 0,
+                zIndex: zLayer[a],
+                image: thisUrl,
+                isSelect: false,
+                isDragging: false,
+                isReloadLayer: false
+            });
+            index += 100;
+            a++;
+        }
+
+        canvas.onmousedown = function(e) {
+            doing.mouseDown(e);
+        }
+        canvas.onmouseup = function(e) {
+            doing.mouseUp(e);
+        }
+        canvas.onmousemove = function(e) {
+            doing.mouseMove(e);
+        }
+
+        doing.init();
         
-        return new Promise((resolve, reject) => {
-            let img = new Image()
-            img.onload = () => resolve(load(img))
-            img.onerror = reject
-            img.src = './Pomeranian 3.png';
+        // Layer Event
+        layer.init();
+        $(document).on('mousedown', '.layer', function(e) {
+            layer.mouseDown(e);
+            console.log('a');
         });
 
-        function load(img) {
-            rects.push({
-                x: 10,
-                y: 5,
-                w: img.naturalWidth,
-                h: img.naturalHeight,
-                image: img,
-                isSelect: false,
-                // fill: "#444444",
-                isDragging: false
-            });
+        $(document).on('mouseup', '.layer', function(e) {
+            layer.mouseUp(e);
+        });
 
-            rects.push({
-                x: 200,
-                y: 5,
-                w: img.naturalWidth,
-                h: img.naturalHeight,
-                image: img,
-                isSelect: false,
-                // fill: "#ff550d",
-                isDragging: false
-            }); 
-
-            rects.push({
-                x: 300,
-                y: 5,
-                w: img.naturalWidth,
-                h: img.naturalHeight,
-                image: img,
-                isSelect: false,
-                // fill: "#ff550d",
-                isDragging: false
-            }); 
-            canvas.onmousedown = function(e) {
-                doing.mouseDown(e);
-            }
-            canvas.onmouseup = function(e) {
-                doing.mouseUp(e);
-            }
-            canvas.onmousemove = function(e) {
-                doing.mouseMove(e);
-            }
-
-            doing.init();
-        }
+        $(document).on('mousemove', '#app-layers', function(e) {
+            layer.mouseMove(e);
+        });
     });
 </script>
